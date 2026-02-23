@@ -43,7 +43,7 @@
 
 ## Demo
 
-![ClauDAY screenshot](screenshot.png)  
+
 <img width="1343" height="923" alt="image" src="https://github.com/user-attachments/assets/7c46b75c-cba8-4336-a1db-fdc7c4e6c20b" />
 
 
