@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClauDAY — ¿Qué tal tu día, Claudia?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #141720;
+    --surface2: #1c2030;
+    --border: #252a3a;
+    --accent: #c8a96e;
+    --accent2: #7f9cf5;
+    --text: #e8e6e0;
+    --text-muted: #7a7f94;
+    --danger: #e07070;
+    --success: #6ec898;
+    --radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    transition: background 0.4s, color 0.4s;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .glow-left {
+    position: fixed; top: -200px; left: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(127,156,245,0.07) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  .glow-right {
+    position: fixed; bottom: -100px; right: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(200,169,110,0.06) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .app {
+    position: relative; z-index: 1;
+    max-width: 1280px; margin: 0 auto; padding: 32px 24px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; margin-bottom: 40px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  .header-left {}
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+  .logo-clau { color: var(--accent); }
+  .logo-day  { color: var(--text); }
+
+  .tagline {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+    letter-spacing: 0.3px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .date-display {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  /* ── CUSTOMIZE BUTTON ── */
+  .customize-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 8px 16px;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: all 0.2s;
+  }
+  .customize-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .customize-btn .palette-icon { font-size: 0.9rem; }
+
+  /* ── THEME PANEL ── */
+  .theme-panel-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 200;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+    backdrop-filter: blur(4px);
+  }
+  .theme-panel-overlay.open { opacity: 1; pointer-events: all; }
+
+  .theme-panel {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 320px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    z-index: 201;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+    padding: 32px 24px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  .theme-panel.open { transform: translateX(0); }
+
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .panel-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel-title::before {
+    content: ''; width: 6px; height: 6px;
+    border-radius: 50%; background: var(--accent); display: inline-block;
+  }
+  .panel-close {
+    background: none; border: none; color: var(--text-muted);
+    font-size: 1.2rem; cursor: pointer; padding: 4px;
+    transition: color 0.2s;
+  }
+  .panel-close:hover { color: var(--text); }
+
+  .theme-section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  /* Preset themes */
+  .theme-presets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .theme-preset {
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .theme-preset:hover { transform: translateY(-2px); }
+  .theme-preset.selected { border-color: var(--accent); }
+  .theme-preset.selected::after {
+    content: '✓';
+    position: absolute; top: 6px; right: 8px;
+    font-size: 0.7rem;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .preset-swatches {
+    display: flex; gap: 4px; margin-bottom: 4px;
+  }
+  .swatch {
+    width: 14px; height: 14px; border-radius: 50%;
+  }
+  .preset-name {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .preset-sub {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+  }
+
+  /* Custom color pickers */
+  .color-pickers {
+    display: flex; flex-direction: column; gap: 14px;
+  }
+
+  .color-row {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .color-label {
+    font-size: 0.82rem;
+    color: var(--text);
+  }
+  .color-sublabel {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    display: block;
+  }
+  .color-input-wrap {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .color-input-wrap input[type="color"] {
+    width: 36px; height: 36px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 2px;
+    background: var(--surface2);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .color-input-wrap input[type="color"]:hover { border-color: var(--accent); }
+  .color-hex {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    width: 56px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 6px;
+    outline: none;
+    color: var(--text);
+    transition: border-color 0.2s;
+  }
+  .color-hex:focus { border-color: var(--accent); }
+
+  .reset-btn {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+  }
+  .reset-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* ── QUOTE ── */
+  .quote-section {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 28px 32px; margin-bottom: 32px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .quote-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 3px; margin-bottom: 12px;
+  }
+  .quote-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem; font-style: italic;
+    color: var(--text); line-height: 1.6; margin-bottom: 8px;
+  }
+  .quote-author { font-size: 0.85rem; color: var(--text-muted); font-weight: 300; }
+
+  /* ── MAIN GRID ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 24px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+  @media (max-width: 768px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .theme-panel { width: 100%; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    transition: border-color 0.3s, background 0.4s;
+  }
+  .card:hover { border-color: var(--accent2); }
+
+  .card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 3px; color: var(--text-muted);
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::before {
+    content: ''; width: 6px; height: 6px;
+    border-radius: 50%; background: var(--accent); display: inline-block;
+  }
+
+  /* ── POMODORO ── */
+  .pomodoro-card { grid-column: 1; grid-row: 1; }
+
+  .mode-tabs { display: flex; gap: 6px; margin-bottom: 28px; }
+  .mode-tab {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    padding: 6px 14px; border-radius: 100px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text-muted); cursor: pointer;
+    transition: all 0.2s; letter-spacing: 1px;
+  }
+  .mode-tab:hover { background: var(--surface2); color: var(--text); }
+  .mode-tab.active {
+    background: var(--accent); color: var(--bg);
+    border-color: var(--accent); font-weight: 500;
+  }
+
+  .timer-display { text-align: center; position: relative; margin: 8px 0 28px; }
+  .timer-ring {
+    width: 180px; height: 180px;
+    margin: 0 auto 16px; position: relative;
+  }
+  .timer-ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+  .timer-ring circle.bg { fill: none; stroke: var(--surface2); stroke-width: 4; }
+  .timer-ring circle.progress {
+    fill: none; stroke: var(--accent); stroke-width: 4;
+    stroke-linecap: round; transition: stroke-dashoffset 1s linear;
+  }
+  .timer-time {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'DM Mono', monospace;
+    font-size: 2.8rem; font-weight: 300;
+    letter-spacing: -2px; color: var(--text);
+  }
+
+  .timer-controls { display: flex; gap: 12px; justify-content: center; align-items: center; }
+
+  .btn {
+    padding: 10px 24px; border-radius: 100px;
+    border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem; font-weight: 500;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: var(--bg); min-width: 100px; }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-secondary {
+    background: var(--surface2); color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); color: var(--text); }
+
+  .pomodoro-count {
+    text-align: center; margin-top: 16px;
+    font-size: 0.8rem; color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+  }
+  .pom-dots { display: flex; justify-content: center; gap: 6px; margin-top: 6px; }
+  .pom-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border); transition: background 0.3s;
+  }
+  .pom-dot.done { background: var(--accent); }
+
+  /* ── MUSIC ── */
+  .music-card { grid-column: 2; grid-row: 1; }
+
+  .music-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .music-link {
+    display: flex; flex-direction: column; align-items: flex-start;
+    padding: 16px; border-radius: 12px;
+    background: var(--surface2); border: 1px solid var(--border);
+    text-decoration: none; color: var(--text);
+    transition: all 0.25s; gap: 8px; position: relative; overflow: hidden;
+  }
+  .music-link::before {
+    content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity 0.3s;
+  }
+  .music-link.spotify::before  { background: linear-gradient(135deg, rgba(30,215,96,0.08), transparent); }
+  .music-link.youtube::before  { background: linear-gradient(135deg, rgba(255,0,0,0.08), transparent); }
+  .music-link.lofi::before     { background: linear-gradient(135deg, rgba(127,156,245,0.08), transparent); }
+  .music-link:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .music-link:hover::before { opacity: 1; }
+  .music-icon { font-size: 1.5rem; line-height: 1; }
+  .music-name { font-size: 0.85rem; font-weight: 500; }
+  .music-desc { font-size: 0.72rem; color: var(--text-muted); line-height: 1.4; }
+
+  /* ── TASKS ── */
+  .tasks-card { grid-column: 1 / -1; grid-row: 2; }
+
+  .task-input-row { display: flex; gap: 10px; margin-bottom: 20px; }
+
+  .task-input {
+    flex: 1; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    outline: none; transition: border-color 0.2s;
+  }
+  .task-input::placeholder { color: var(--text-muted); }
+  .task-input:focus { border-color: var(--accent); }
+
+  .task-input-btn {
+    background: var(--accent); border: none; border-radius: 10px;
+    padding: 12px 20px; color: var(--bg);
+    font-size: 1.2rem; cursor: pointer;
+    transition: all 0.2s; font-weight: 700;
+  }
+  .task-input-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
+
+  .task-filters { display: flex; gap: 8px; margin-bottom: 16px; }
+  .filter-btn {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    padding: 4px 12px; border-radius: 100px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text-muted); cursor: pointer;
+    transition: all 0.2s; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .filter-btn.active, .filter-btn:hover { background: var(--surface2); color: var(--text); }
+  .filter-btn.active { border-color: var(--accent2); color: var(--accent2); }
+
+  .task-list {
+    display: flex; flex-direction: column; gap: 8px;
+    max-height: 320px; overflow-y: auto; padding-right: 4px;
+  }
+  .task-list::-webkit-scrollbar { width: 4px; }
+  .task-list::-webkit-scrollbar-track { background: transparent; }
+  .task-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .task-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 10px;
+    transition: all 0.25s;
+    animation: slideIn 0.3s ease both;
+  }
+  .task-item:hover { border-color: var(--accent2); }
+  .task-item.done { opacity: 0.5; }
+  .task-item.done .task-text { text-decoration: line-through; color: var(--text-muted); }
+
+  .task-check {
+    width: 20px; height: 20px; border: 2px solid var(--border);
+    border-radius: 6px; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; font-size: 0.7rem;
+  }
+  .task-check:hover { border-color: var(--accent); }
+  .task-item.done .task-check { background: var(--success); border-color: var(--success); color: #0d0f14; }
+
+  .task-text { flex: 1; font-size: 0.9rem; color: var(--text); }
+
+  .task-delete {
+    background: none; border: none; color: var(--text-muted);
+    cursor: pointer; font-size: 1rem; padding: 2px 6px;
+    border-radius: 4px; transition: all 0.2s; opacity: 0;
+  }
+  .task-item:hover .task-delete { opacity: 1; }
+  .task-delete:hover { background: rgba(224,112,112,0.15); color: var(--danger); }
+
+  .task-stats {
+    margin-top: 16px; display: flex; gap: 20px;
+    font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--text-muted);
+  }
+  .task-stats span { letter-spacing: 1px; }
+  .task-stats .highlight { color: var(--accent); }
+
+  .empty-state {
+    text-align: center; padding: 40px;
+    color: var(--text-muted); font-size: 0.9rem; font-style: italic;
+  }
+
+  /* ── DAY PROGRESS ── */
+  .day-progress {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 2px; background: var(--border); z-index: 10;
+  }
+  .day-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    transition: width 1s linear;
+  }
+
+  /* ── NOTIFICATION ── */
+  .notification {
+    position: fixed; top: 24px; right: 24px;
+    background: var(--surface); border: 1px solid var(--accent);
+    border-radius: 12px; padding: 14px 20px;
+    font-size: 0.85rem; color: var(--accent);
+    transform: translateX(200%);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 300; font-family: 'DM Mono', monospace;
+  }
+  .notification.show { transform: translateX(0); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(16px);  } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideIn  { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:translateX(0); } }
+
+  /* ── Divider in panel ── */
+  .panel-divider {
+    height: 1px; background: var(--border); margin: 4px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="day-progress">
+  <div class="day-progress-fill" id="dayProgress"></div>
+</div>
+
+<div class="glow-left"></div>
+<div class="glow-right"></div>
+
+<div class="notification" id="notification"></div>
+
+<!-- Theme panel overlay -->
+<div class="theme-panel-overlay" id="overlay" onclick="closePanel()"></div>
+
+<!-- Theme panel -->
+<div class="theme-panel" id="themePanel">
+  <div class="panel-header">
+    <div class="panel-title">Personalizar</div>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+
+  <div>
+    <div class="theme-section-label">Temas predefinidos</div>
+    <div class="theme-presets" id="themePresets"></div>
+  </div>
+
+  <div class="panel-divider"></div>
+
+  <div>
+    <div class="theme-section-label">Colores personalizados</div>
+    <div class="color-pickers">
+      <div class="color-row">
+        <div>
+          <div class="color-label">Fondo</div>
+          <span class="color-sublabel">Color principal</span>
+        </div>
+        <div class="color-input-wrap">
+          <input type="color" id="c-bg" oninput="customColor('--bg', this.value, 'hex-bg')">
+          <input type="text" class="color-hex" id="hex-bg" maxlength="7" oninput="hexInput('--bg', this.value, 'c-bg')">
+        </div>
+      </div>
+      <div class="color-row">
+        <div>
+          <div class="color-label">Acento principal</div>
+          <span class="color-sublabel">Botones, highlights</span>
+        </div>
+        <div class="color-input-wrap">
+          <input type="color" id="c-accent" oninput="customColor('--accent', this.value, 'hex-accent')">
+          <input type="text" class="color-hex" id="hex-accent" maxlength="7" oninput="hexInput('--accent', this.value, 'c-accent')">
+        </div>
+      </div>
+      <div class="color-row">
+        <div>
+          <div class="color-label">Acento secundario</div>
+          <span class="color-sublabel">Filtros, detalles</span>
+        </div>
+        <div class="color-input-wrap">
+          <input type="color" id="c-accent2" oninput="customColor('--accent2', this.value, 'hex-accent2')">
+          <input type="text" class="color-hex" id="hex-accent2" maxlength="7" oninput="hexInput('--accent2', this.value, 'c-accent2')">
+        </div>
+      </div>
+      <div class="color-row">
+        <div>
+          <div class="color-label">Texto</div>
+          <span class="color-sublabel">Color del contenido</span>
+        </div>
+        <div class="color-input-wrap">
+          <input type="color" id="c-text" oninput="customColor('--text', this.value, 'hex-text')">
+          <input type="text" class="color-hex" id="hex-text" maxlength="7" oninput="hexInput('--text', this.value, 'c-text')">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-divider"></div>
+  <button class="reset-btn" onclick="resetTheme()">↺ Restaurar por defecto</button>
+</div>
+
+<div class="app">
+  <header>
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-clau">Clau</span><span class="logo-day">DAY</span>
+      </div>
+      <div class="tagline">¿Qué tal tu día, Claudia? ✨</div>
+    </div>
+    <div class="header-right">
+      <div class="date-display" id="dateDisplay"></div>
+      <button class="customize-btn" onclick="openPanel()">
+        <span class="palette-icon">🎨</span> Personalizar
+      </button>
+    </div>
+  </header>
+
+  <div class="quote-section">
+    <div class="quote-label">✦ frase del día</div>
+    <div class="quote-text" id="quoteText"></div>
+    <div class="quote-author" id="quoteAuthor"></div>
+  </div>
+
+  <div class="main-grid">
+
+    <!-- Pomodoro -->
+    <div class="card pomodoro-card">
+      <div class="card-title">Temporizador Pomodoro</div>
+      <div class="mode-tabs">
+        <button class="mode-tab active" onclick="setMode('pomodoro')">Enfoque</button>
+        <button class="mode-tab" onclick="setMode('short')">Descanso corto</button>
+        <button class="mode-tab" onclick="setMode('long')">Descanso largo</button>
+      </div>
+      <div class="timer-display">
+        <div class="timer-ring">
+          <svg viewBox="0 0 100 100">
+            <circle class="bg" cx="50" cy="50" r="44"/>
+            <circle class="progress" id="timerRing" cx="50" cy="50" r="44"
+              stroke-dasharray="276.46" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-time" id="timerDisplay">25:00</div>
+        </div>
+      </div>
+      <div class="timer-controls">
+        <button class="btn btn-secondary" onclick="resetTimer()">↺ Reset</button>
+        <button class="btn btn-primary" id="timerBtn" onclick="toggleTimer()">▶ Iniciar</button>
+      </div>
+      <div class="pomodoro-count">
+        <div>Sesiones completadas hoy</div>
+        <div class="pom-dots" id="pomDots">
+          <div class="pom-dot"></div><div class="pom-dot"></div>
+          <div class="pom-dot"></div><div class="pom-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Music -->
+    <div class="card music-card">
+      <div class="card-title">Música para estudiar</div>
+      <div class="music-grid">
+        <a href="https://open.spotify.com/playlist/37i9dQZF1DX8NTLI2TtZa6" target="_blank" class="music-link spotify">
+          <div class="music-icon">🎵</div>
+          <div class="music-name">Spotify Study</div>
+          <div class="music-desc">Study & Focus — Beats instrumentales</div>
+        </a>
+        <a href="https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ" target="_blank" class="music-link spotify">
+          <div class="music-icon">☕</div>
+          <div class="music-name">Lo-Fi Chill</div>
+          <div class="music-desc">Deep Focus — Spotify</div>
+        </a>
+        <a href="https://www.youtube.com/watch?v=jfKfPfyJRdk" target="_blank" class="music-link youtube">
+          <div class="music-icon">📺</div>
+          <div class="music-name">Lofi Girl</div>
+          <div class="music-desc">Radio en vivo — YouTube</div>
+        </a>
+        <a href="https://www.youtube.com/watch?v=5qap5aO4i9A" target="_blank" class="music-link lofi">
+          <div class="music-icon">🌙</div>
+          <div class="music-name">Chillhop</div>
+          <div class="music-desc">Lofi Hip Hop Radio</div>
+        </a>
+        <a href="https://open.spotify.com/playlist/37i9dQZF1DX9sIqqvKsjEK" target="_blank" class="music-link spotify">
+          <div class="music-icon">🎹</div>
+          <div class="music-name">Piano Focus</div>
+          <div class="music-desc">Classical piano — Spotify</div>
+        </a>
+        <a href="https://www.youtube.com/watch?v=lTRiuFIWV54" target="_blank" class="music-link youtube">
+          <div class="music-icon">🌿</div>
+          <div class="music-name">Nature + Lo-fi</div>
+          <div class="music-desc">Ambient sounds — YouTube</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="card tasks-card">
+      <div class="card-title">Lista de tareas</div>
+      <div class="task-input-row">
+        <input type="text" class="task-input" id="taskInput" placeholder="Añade una nueva tarea..." maxlength="100" onkeydown="if(event.key==='Enter') addTask()">
+        <button class="task-input-btn" onclick="addTask()">+</button>
+      </div>
+      <div class="task-filters">
+        <button class="filter-btn active" onclick="setFilter('all', this)">Todas</button>
+        <button class="filter-btn" onclick="setFilter('pending', this)">Pendientes</button>
+        <button class="filter-btn" onclick="setFilter('done', this)">Completadas</button>
+      </div>
+      <div class="task-list" id="taskList"></div>
+      <div class="task-stats" id="taskStats"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── THEMES ───────────────────────────────────────────────────────────────────
+const THEMES = [
+  {
+    id: 'dark-gold',
+    name: 'Oscuro Dorado',
+    sub: 'Por defecto',
+    vars: { '--bg':'#0d0f14','--surface':'#141720','--surface2':'#1c2030','--border':'#252a3a','--accent':'#c8a96e','--accent2':'#7f9cf5','--text':'#e8e6e0','--text-muted':'#7a7f94' },
+    swatches: ['#0d0f14','#c8a96e','#7f9cf5']
+  },
+  {
+    id: 'rose-night',
+    name: 'Rosa Noche',
+    sub: 'Suave y cálido',
+    vars: { '--bg':'#13090f','--surface':'#1e1018','--surface2':'#281420','--border':'#3a1f2e','--accent':'#e8839d','--accent2':'#c47bca','--text':'#f0e0e8','--text-muted':'#8a6070' },
+    swatches: ['#13090f','#e8839d','#c47bca']
+  },
+  {
+    id: 'forest',
+    name: 'Bosque',
+    sub: 'Verde natural',
+    vars: { '--bg':'#080f0c','--surface':'#0f1a14','--surface2':'#152219','--border':'#1e3028','--accent':'#5fc98a','--accent2':'#7ac9b8','--text':'#d8ede4','--text-muted':'#5a8070' },
+    swatches: ['#080f0c','#5fc98a','#7ac9b8']
+  },
+  {
+    id: 'ocean',
+    name: 'Océano',
+    sub: 'Azul profundo',
+    vars: { '--bg':'#060c14','--surface':'#0c1422','--surface2':'#111c2e','--border':'#182538','--accent':'#4facde','--accent2':'#7fd4f5','--text':'#d0e8f5','--text-muted':'#4a6878' },
+    swatches: ['#060c14','#4facde','#7fd4f5']
+  },
+  {
+    id: 'light-sand',
+    name: 'Arena Clara',
+    sub: 'Modo día',
+    vars: { '--bg':'#f5f0e8','--surface':'#ede8de','--surface2':'#e4dece','--border':'#cfc8b5','--accent':'#b07d3a','--accent2':'#6b8fa3','--text':'#2a2318','--text-muted':'#8a7d68' },
+    swatches: ['#f5f0e8','#b07d3a','#6b8fa3']
+  },
+  {
+    id: 'lavender',
+    name: 'Lavanda',
+    sub: 'Suave y fresco',
+    vars: { '--bg':'#100c18','--surface':'#18142a','--surface2':'#211b36','--border':'#2e2548','--accent':'#a98ede','--accent2':'#de8ec4','--text':'#e8e0f5','--text-muted':'#7a6898' },
+    swatches: ['#100c18','#a98ede','#de8ec4']
+  }
+];
+
+let currentThemeId = localStorage.getItem('clauday_theme') || 'dark-gold';
+let customVars = JSON.parse(localStorage.getItem('clauday_custom') || 'null');
+
+function applyTheme(vars) {
+  const root = document.documentElement;
+  for (const [k, v] of Object.entries(vars)) {
+    root.style.setProperty(k, v);
+  }
+}
+
+function loadTheme() {
+  if (customVars) {
+    applyTheme(customVars);
+    syncPickers(customVars);
+  } else {
+    const t = THEMES.find(t => t.id === currentThemeId) || THEMES[0];
+    applyTheme(t.vars);
+    syncPickers(t.vars);
+  }
+}
+
+function syncPickers(vars) {
+  const map = { '--bg':'bg','--accent':'accent','--accent2':'accent2','--text':'text' };
+  for (const [cssVar, id] of Object.entries(map)) {
+    const val = vars[cssVar] || getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim();
+    const c = document.getElementById('c-' + id);
+    const h = document.getElementById('hex-' + id);
+    if (c) c.value = val;
+    if (h) h.value = val;
+  }
+}
+
+function buildPresets() {
+  const container = document.getElementById('themePresets');
+  container.innerHTML = THEMES.map(t => `
+    <div class="theme-preset ${t.id === currentThemeId && !customVars ? 'selected' : ''}"
+         id="preset-${t.id}" onclick="selectPreset('${t.id}')">
+      <div class="preset-swatches">
+        ${t.swatches.map(s => `<div class="swatch" style="background:${s}"></div>`).join('')}
+      </div>
+      <div class="preset-name">${t.name}</div>
+      <div class="preset-sub">${t.sub}</div>
+    </div>
+  `).join('');
+}
+
+function selectPreset(id) {
+  currentThemeId = id;
+  customVars = null;
+  localStorage.setItem('clauday_theme', id);
+  localStorage.removeItem('clauday_custom');
+  const t = THEMES.find(t => t.id === id);
+  applyTheme(t.vars);
+  syncPickers(t.vars);
+  buildPresets();
+}
+
+function customColor(cssVar, value, hexId) {
+  document.documentElement.style.setProperty(cssVar, value);
+  document.getElementById(hexId).value = value;
+  saveCustom();
+  buildPresets(); // deselect presets
+}
+
+function hexInput(cssVar, value, colorId) {
+  if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+    document.documentElement.style.setProperty(cssVar, value);
+    document.getElementById(colorId).value = value;
+    saveCustom();
+    buildPresets();
+  }
+}
+
+function saveCustom() {
+  const vars = {};
+  const root = getComputedStyle(document.documentElement);
+  ['--bg','--surface','--surface2','--border','--accent','--accent2','--text','--text-muted'].forEach(v => {
+    vars[v] = document.documentElement.style.getPropertyValue(v) || root.getPropertyValue(v).trim();
+  });
+  customVars = vars;
+  localStorage.setItem('clauday_custom', JSON.stringify(vars));
+}
+
+function resetTheme() {
+  customVars = null;
+  localStorage.removeItem('clauday_custom');
+  currentThemeId = 'dark-gold';
+  localStorage.setItem('clauday_theme', 'dark-gold');
+  const t = THEMES[0];
+  applyTheme(t.vars);
+  syncPickers(t.vars);
+  buildPresets();
+}
+
+// Panel open/close
+function openPanel() {
+  document.getElementById('themePanel').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closePanel() {
+  document.getElementById('themePanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ─── QUOTES ───────────────────────────────────────────────────────────────────
+const quotes = [
+  { text: "El secreto para avanzar es comenzar.", author: "Mark Twain" },
+  { text: "No cuentes los días, haz que los días cuenten.", author: "Muhammad Ali" },
+  { text: "La disciplina es el puente entre las metas y los logros.", author: "Jim Rohn" },
+  { text: "Aprende como si fueras a vivir para siempre.", author: "Mahatma Gandhi" },
+  { text: "El éxito no es la clave de la felicidad. La felicidad es la clave del éxito.", author: "Albert Schweitzer" },
+  { text: "Nunca es demasiado tarde para ser lo que podrías haber sido.", author: "George Eliot" },
+  { text: "La educación es el arma más poderosa que puedes usar para cambiar el mundo.", author: "Nelson Mandela" },
+  { text: "Cada experto fue una vez un principiante.", author: "Helen Hayes" },
+  { text: "Tu único límite eres tú mismo.", author: "Anónimo" },
+  { text: "El conocimiento es poder.", author: "Francis Bacon" },
+  { text: "Los que aprenden sin pensar pierden el tiempo; los que piensan sin aprender están en peligro.", author: "Confucio" },
+  { text: "Hazlo con pasión o no lo hagas en absoluto.", author: "Rosa Nouchette Carey" },
+  { text: "Pequeños pasos cada día llevan a grandes destinos.", author: "Anónimo" },
+  { text: "Concentrarse en el progreso en lugar de la perfección.", author: "Reggie Rivers" },
+  { text: "El dolor que sientes hoy será la fuerza que sentirás mañana.", author: "Anónimo" },
+  { text: "Sé el cambio que deseas ver en el mundo.", author: "Mahatma Gandhi" },
+  { text: "No es que yo sea tan inteligente, es que me quedo con los problemas más tiempo.", author: "Albert Einstein" },
+  { text: "El éxito es la suma de pequeños esfuerzos repetidos día tras día.", author: "Robert Collier" },
+  { text: "El momento más oportuno para plantar un árbol fue hace veinte años. El segundo mejor momento es ahora.", author: "Proverbio chino" },
+  { text: "Estudia no para saber más, sino para ignorar menos.", author: "Juana Inés de la Cruz" },
+  { text: "La perseverancia es el trabajo duro que haces después de cansarte del trabajo duro que ya hiciste.", author: "Newt Gingrich" },
+  { text: "La mente es como un paracaídas. Solo funciona cuando está abierta.", author: "Frank Zappa" },
+  { text: "El conocimiento habla, pero la sabiduría escucha.", author: "Jimi Hendrix" },
+  { text: "Lo que sabemos es una gota; lo que ignoramos es un océano.", author: "Isaac Newton" },
+  { text: "La excelencia nunca es un accidente.", author: "Aristóteles" },
+  { text: "Primero eres un estudiante, luego un maestro, pero siempre vuelves a ser estudiante.", author: "Anónimo" },
+  { text: "Un día sin aprender algo nuevo es un día desperdiciado.", author: "Albert Einstein" },
+  { text: "El aprendizaje nunca agota la mente.", author: "Leonardo da Vinci" },
+  { text: "La creatividad es la inteligencia divirtiéndose.", author: "Albert Einstein" },
+  { text: "Hoy es siempre el día más productivo de tu vida.", author: "Mark Twain" },
+  { text: "No busques el tiempo, crea el tiempo.", author: "Anónimo" },
+  { text: "Sé constante. Las grandes cosas llevan tiempo.", author: "Anónimo" },
+  { text: "El talento gana partidos, pero el trabajo en equipo y la inteligencia ganan campeonatos.", author: "Michael Jordan" },
+  { text: "Cree en ti mismo y todo lo demás encajará.", author: "Anónimo" },
+  { text: "Cada día es una nueva oportunidad para crecer.", author: "Anónimo" },
+  { text: "Lo que haces hoy puede mejorar todos tus mañanas.", author: "Ralph Marston" },
+  { text: "No pares cuando estés cansada. Para cuando hayas terminado.", author: "Anónimo" }
+];
+
+function loadQuote() {
+  const today = new Date();
+  const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+  const q = quotes[dayOfYear % quotes.length];
+  document.getElementById('quoteText').textContent = `"${q.text}"`;
+  document.getElementById('quoteAuthor').textContent = `— ${q.author}`;
+}
+
+// ─── DATE & DAY PROGRESS ──────────────────────────────────────────────────────
+function updateDate() {
+  const now = new Date();
+  const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  document.getElementById('dateDisplay').textContent =
+    `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  const totalSecs = 24 * 3600;
+  const elapsed = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  document.getElementById('dayProgress').querySelector('.day-progress-fill').style.width = (elapsed / totalSecs * 100) + '%';
+}
+
+// ─── POMODORO ─────────────────────────────────────────────────────────────────
+const MODES = { pomodoro: 25*60, short: 5*60, long: 15*60 };
+let currentMode = 'pomodoro';
+let timeLeft = MODES.pomodoro;
+let timerRunning = false;
+let timerInterval = null;
+let completedSessions = 0;
+const CIRCUMFERENCE = 2 * Math.PI * 44;
+
+function setMode(mode) {
+  currentMode = mode;
+  timeLeft = MODES[mode];
+  clearInterval(timerInterval);
+  timerRunning = false;
+  document.getElementById('timerBtn').textContent = '▶ Iniciar';
+  updateTimerDisplay();
+  document.querySelectorAll('.mode-tab').forEach((el, i) => {
+    el.classList.toggle('active', ['pomodoro','short','long'][i] === mode);
+  });
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+  const s = (timeLeft % 60).toString().padStart(2, '0');
+  document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+  const offset = CIRCUMFERENCE * (1 - timeLeft / MODES[currentMode]);
+  document.getElementById('timerRing').style.strokeDashoffset = offset;
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timerBtn').textContent = '▶ Reanudar';
+  } else {
+    timerRunning = true;
+    document.getElementById('timerBtn').textContent = '⏸ Pausar';
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateTimerDisplay();
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        document.getElementById('timerBtn').textContent = '▶ Iniciar';
+        if (currentMode === 'pomodoro') {
+          completedSessions = Math.min(completedSessions + 1, 4);
+          updateDots();
+        }
+        showNotification(currentMode === 'pomodoro' ? '🍅 ¡Pomodoro completado!' : '✅ ¡Descanso terminado!');
+      }
+    }, 1000);
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timeLeft = MODES[currentMode];
+  document.getElementById('timerBtn').textContent = '▶ Iniciar';
+  updateTimerDisplay();
+}
+
+function updateDots() {
+  document.querySelectorAll('.pom-dot').forEach((dot, i) => {
+    dot.classList.toggle('done', i < completedSessions);
+  });
+}
+
+function showNotification(msg) {
+  const n = document.getElementById('notification');
+  n.textContent = msg;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 3500);
+}
+
+// ─── TASKS ────────────────────────────────────────────────────────────────────
+let tasks = JSON.parse(localStorage.getItem('clauday_tasks') || '[]');
+let filter = 'all';
+
+function saveTasks() { localStorage.setItem('clauday_tasks', JSON.stringify(tasks)); }
+
+function addTask() {
+  const input = document.getElementById('taskInput');
+  const text = input.value.trim();
+  if (!text) return;
+  tasks.unshift({ id: Date.now(), text, done: false });
+  saveTasks(); input.value = ''; renderTasks();
+}
+
+function toggleTask(id) {
+  const t = tasks.find(t => t.id === id);
+  if (t) t.done = !t.done;
+  saveTasks(); renderTasks();
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  saveTasks(); renderTasks();
+}
+
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks();
+}
+
+function renderTasks() {
+  const list = document.getElementById('taskList');
+  const filtered = tasks.filter(t => {
+    if (filter === 'pending') return !t.done;
+    if (filter === 'done') return t.done;
+    return true;
+  });
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state">${filter === 'done' ? 'Aún no has completado ninguna tarea.' : 'Sin tareas. ¡Añade una para empezar!'}</div>`;
+  } else {
+    list.innerHTML = filtered.map(t => `
+      <div class="task-item ${t.done ? 'done' : ''}">
+        <div class="task-check" onclick="toggleTask(${t.id})">${t.done ? '✓' : ''}</div>
+        <div class="task-text">${escapeHtml(t.text)}</div>
+        <button class="task-delete" onclick="deleteTask(${t.id})">✕</button>
+      </div>
+    `).join('');
+  }
+  const done = tasks.filter(t => t.done).length;
+  const total = tasks.length;
+  document.getElementById('taskStats').innerHTML = total > 0
+    ? `<span>Total: <span class="highlight">${total}</span></span><span>Completadas: <span class="highlight">${done}</span></span><span>Pendientes: <span class="highlight">${total - done}</span></span>`
+    : '';
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+buildPresets();
+loadTheme();
+loadQuote();
+updateDate();
+updateTimerDisplay();
+renderTasks();
+setInterval(updateDate, 60000);
+</script>
+</body>
+</html>
