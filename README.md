@@ -44,13 +44,14 @@
 ## Demo
 
 ![ClauDAY screenshot](screenshot.png)  
-*(Opcional: puedes subir un screenshot de tu web aquí)*
+<img width="1343" height="923" alt="image" src="https://github.com/user-attachments/assets/7c46b75c-cba8-4336-a1db-fdc7c4e6c20b" />
+
 
 ---
 
-## Contribuciones
+## AVISO
 
-Este proyecto es personal, pero si quieres hacer sugerencias o mejoras, puedes abrir un **issue** en el repositorio.
+Este proyecto está vibecodeado al 90%, solo es para aprender como funciona una página web y añadirle funcionalidades extra con el paso del tiempo. Cualquier sugerencia de mejora será tomada en cuenta :D
 
 ---
 
