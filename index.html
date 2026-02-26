@@ -42,6 +42,7 @@ body{
   min-height:100vh;
   overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
+  transition:background .4s ease, color .3s ease;
 }
 
 /* ─── GRAIN ──────────────────────────────────────────────────────────────── */
@@ -70,6 +71,76 @@ body::after{
 }
 
 /* ─── HEADER ─────────────────────────────────────────────────────────────── */
+/* ─── HERO ─────────────────────────────────────────────────────────────── */
+.hero{
+  padding:64px 0 48px;
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+  max-width:720px;
+  animation:fadeSlideUp .6s .05s ease both;
+}
+
+.hero-kicker{
+  font-family:'Geist Mono',monospace;
+  font-size:.65rem;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--accent);
+}
+
+.hero-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.6rem,5vw,3.8rem);
+  font-weight:300;
+  line-height:1.05;
+  letter-spacing:-1px;
+}
+
+.hero-sub{
+  font-size:1rem;
+  color:var(--text-2);
+  max-width:560px;
+  line-height:1.7;
+}
+
+.hero-actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.hero-btn{
+  padding:12px 26px;
+  border-radius:10px;
+  font-size:.85rem;
+  font-weight:400;
+  cursor:pointer;
+  transition:var(--trans);
+  border:1px solid transparent;
+}
+
+.hero-btn-primary{
+  background:var(--accent);
+  color:var(--bg);
+}
+
+.hero-btn-primary:hover{
+  transform:translateY(-3px);
+  box-shadow:0 8px 30px var(--accent-md);
+}
+
+.hero-btn-ghost{
+  background:transparent;
+  border-color:var(--line2);
+  color:var(--text);
+}
+
+.hero-btn-ghost:hover{
+  border-color:var(--accent);
+  color:var(--accent);
+}
 .header{
   display:flex;
   align-items:flex-start;
@@ -156,9 +227,12 @@ body::after{
   margin-top:6px;
   font-weight:300;
 }
-
+.grid{  /*esto no se por qué lmaoo*/
+  margin-top:40px;
+}
 /* ─── GRID ───────────────────────────────────────────────────────────────── */
 .grid{
+  
   display:grid;
   grid-template-columns:1fr 1fr;
   grid-template-rows:auto auto;
@@ -172,21 +246,30 @@ body::after{
   border:1px solid var(--line);
   border-radius:var(--r-lg);
   padding:28px;
-  transition:border-color var(--trans);
-  position:relative;overflow:hidden;
+  transition:
+    border-color var(--trans),
+    transform var(--trans),
+    box-shadow var(--trans);
+  position:relative;
+  overflow:hidden;
 }
-.card:hover{border-color:var(--line2);}
+
+.card:hover{
+  border-color:var(--line2);
+  transform:translateY(-4px);
+  box-shadow:0 15px 40px #00000040;
+}
 .card-header{
   display:flex;align-items:center;justify-content:space-between;
   margin-bottom:24px;
 }
 .card-label{
   font-family:'Geist Mono',monospace;
-  font-size:.62rem;
+  font-size:.7rem;   /* antes .62 */
   text-transform:uppercase;
-  letter-spacing:.16em;
-  color:var(--text-3);
-  display:flex;align-items:center;gap:8px;
+  letter-spacing:.18em;
+  color:var(--text-2); /* antes text-3 */
+  /*display:flex;align-items:center;gap:8px; */
 }
 .card-label svg{width:12px;height:12px;color:var(--accent);}
 
@@ -781,7 +864,7 @@ input[type="color"]:hover{border-color:var(--accent);}
   <header class="header">
     <div class="brand">
       <div class="brand-name"><em>Clau</em>DAY</div>
-      <div class="brand-sub">¿Qué tal tu día, Claudia?</div>
+      <div class="brand-sub">¿Cómo va tu día?</div>
     </div>
     <div class="header-right">
       <span id="dateLabel"></span>
@@ -790,6 +873,21 @@ input[type="color"]:hover{border-color:var(--accent);}
       </button>
     </div>
   </header>
+
+<section class="hero">
+  <h1 class="hero-title">
+    Enfoque profundo.<br>
+    <em style="color:var(--accent);font-style:normal;">Sin distracciones.</em>
+  </h1>
+  <p class="hero-sub">
+    Pomodoro, tareas y música en uno. Aprovecha cada momento de tu día con herramientas diseñadas para mantener tu concentración y motivación al máximo.
+  </p>
+  <div class="hero-actions">
+    <button class="hero-btn hero-btn-primary" onclick="document.querySelector('.pom-card').scrollIntoView({behavior:'smooth'})">
+      Empezar sesión
+    </button>
+  </div>
+</section>
 
   <!-- Quote -->
   <div class="quote-bar">
@@ -1318,7 +1416,7 @@ function renderTasks(){
     return true;
   });
   if(!vis.length){
-    list.innerHTML=`<div class="t-empty">${tFilter==='done'?'NINGUNA COMPLETADA AÚN':'SIN TAREAS — AÑADE UNA'}</div>`;
+    list.innerHTML=`<div class="t-empty">${tFilter==='done'?'NO HAS COMPLETADO NINGUNA TAREA. ¡TODAVÍA ESTÁS A TIEMPO!':'SIN TAREAS — AÑADE UNA'}</div>`;
   } else {
     list.innerHTML=vis.map(t=>`
       <div class="t-item${t.done?' done':''}" id="ti-${t.id}">
