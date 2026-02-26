@@ -1,6 +1,6 @@
 # ClauDAY — Organiza tu día y estudia con foco ✨
 
-[Ver en vivo](https://14clau.github.io/clauDay/)
+[Entra aquí](https://14clau.github.io/clauDay/)
 
 ---
 
@@ -15,7 +15,7 @@
   Añade, completa y filtra tus tareas diarias para mantener un seguimiento de lo que tienes pendiente y lo que ya has hecho.
 
 - **Música relajante para estudiar** 🎵  
-  Accede a playlists de Spotify y transmisiones de YouTube con música instrumental, Lo-Fi y sonidos ambientales para aumentar la concentración.
+  Accede a playlists de Spotify con música instrumental, Lo-Fi y sonidos ambientales para aumentar la concentración.
 
 - **Personalización de tema** 🎨  
   Cambia los colores de la web y selecciona temas predefinidos para adaptar la interfaz a tu estilo.
@@ -26,7 +26,7 @@
 
 1. Abre la página en tu navegador: [https://14clau.github.io/clauDay/](https://14clau.github.io/clauDay/)  
 2. Explora las secciones:
-   - Pomodoro: ajusta tu sesión de estudio y descansos.
+   - Pomodoro: ajusta tu sesión de estudio y descansos. **NOVEDAD:** Elige qué sonido quieres para el temporizador.
    - Lista de tareas: añade nuevas tareas y márcalas como completadas.
    - Música: selecciona tu playlist favorita para estudiar.  
 3. Personaliza colores y temas desde el botón **"Personalizar"** en la esquina superior derecha.
@@ -41,7 +41,7 @@
 
 ---
 
-## Demo
+## Imágenes
 
 
 <img width="1343" height="923" alt="image" src="https://github.com/user-attachments/assets/7c46b75c-cba8-4336-a1db-fdc7c4e6c20b" />
